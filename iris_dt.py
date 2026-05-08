@@ -1,6 +1,8 @@
 # Importa as bibliotecas necessárias para baixar dados (kagglehub) e manipulá-los (pandas).
 import kagglehub
 import pandas as pd
+import networkx as nx
+import matplotlib.pyplot as plt
 
 # Baixa o dataset Iris do Kaggle e o carrega em um DataFrame.
 path = kagglehub.dataset_download("uciml/iris")
