@@ -188,3 +188,70 @@ for i in range(S):
 print(f"Acurácia: {acuracia}")
 
 # -------------------------------------------------------------------------------------------------------#
+
+def build_graph(node, graph=None, pos=None, x=0, y=0, layer_height=1, layer_width=4, node_id=0):
+    """
+    Percorre a árvore recursivamente e adiciona os nós e arestas ao grafo do networkx.
+    """
+    if graph is None:
+        graph = nx.DiGraph()
+        pos = {}
+
+    current_id = node_id
+
+    # Define o texto e a cor dependendo se é uma folha ou um nó de decisão
+    if node.valor is not None:
+        label = f"Folha\n{node.valor}\nGini: {node.gini:.2f}"
+        color = 'lightgreen'
+    else:
+        label = f"{node.feature}\n< {node.threshold}\nGini: {node.gini:.2f}"
+        color = 'lightblue'
+
+    # Adiciona o nó atual ao grafo
+    graph.add_node(current_id, label=label, color=color)
+    pos[current_id] = (x, y)
+
+    next_id = current_id + 1
+
+    # Percorre o filho à esquerda (Sim)
+    if node.left is not None:
+        left_id, next_id = build_graph(node.left, graph, pos, x - layer_width, y - layer_height, layer_height, layer_width / 2, next_id)
+        graph.add_edge(current_id, left_id, label="Sim")
+
+    # Percorre o filho à direita (Não)
+    if node.right is not None:
+        right_id, next_id = build_graph(node.right, graph, pos, x + layer_width, y - layer_height, layer_height, layer_width / 2, next_id)
+        graph.add_edge(current_id, right_id, label="Não")
+
+    return current_id, next_id
+
+def plot_custom_tree(root):
+    """
+    Plota o grafo usando matplotlib.
+    """
+    graph = nx.DiGraph()
+    pos = {}
+    build_graph(root, graph, pos)
+
+    # Coleta as propriedades dos nós
+    labels = nx.get_node_attributes(graph, 'label')
+    colors = [nx.get_node_attributes(graph, 'color')[n] for n in graph.nodes()]
+
+    plt.figure(figsize=(14, 8))
+    
+    # Desenha os nós
+    nx.draw(graph, pos, labels=labels, with_labels=True, 
+            node_color=colors, node_size=4000, font_size=9, 
+            font_weight='bold', arrows=False, node_shape="s", 
+            bbox=dict(facecolor="white", edgecolor='black', boxstyle='round,pad=0.3'))
+
+    # Desenha os rótulos das arestas ("Sim" / "Não")
+    edge_labels = nx.get_edge_attributes(graph, 'label')
+    nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, font_color='red')
+
+    plt.title("Estrutura da Árvore de Decisão Customizada")
+    plt.show()
+
+# Para testar, chame a função passando a raiz (root) gerada no seu código
+print("\nGerando gráfico da árvore...")
+plot_custom_tree(root)
